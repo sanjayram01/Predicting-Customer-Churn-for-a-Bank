@@ -23,10 +23,9 @@ attrition?
 attrition over time, perhaps by analyzing attrition rates in different periods?
 3. Is there a discernible pattern where clients in higher income categories exhibit a lower
 attrition rate, and if so, what strategies can be formulated to enhance client retention
-among those in lower income categories?
-4. Can we predict the likelihood of a customer leaving the bank in the next 3 months
-based on their past transaction behavior and demographic information?
-5. If a customer has a low-income level but a high credit limit, is there a higher
+among those in lower-income categories?
+4. Can we predict the likelihood of a customer leaving the bank based on their past transaction behaviour and demographic information?
+5. If a customer has a low income level but a high credit limit, is there a higher
 probability of them churning?
 
 **Modeling Methods:**
