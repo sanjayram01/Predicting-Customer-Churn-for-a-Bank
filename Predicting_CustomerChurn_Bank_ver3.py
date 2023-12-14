@@ -47,7 +47,7 @@ df.describe()
 
 #%%
 # checking datatypes and null values
-dataset.info()
+df.info()
 
 #%%[markdown]
 # # EDA(Exploratory Data Analysis)
@@ -91,6 +91,60 @@ plt.title('Box Plot of Months on Book')
 # Show the plot
 plt.show()
 
+#%%
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Create a box plot for Months_on_book
+plt.figure(figsize=(12, 6))
+sns.boxplot(x='Total_Relationship_Count', data=df)
+
+# Set plot labels and title
+plt.xlabel('Total_Relationship_Count')
+plt.title('Box Plot of Total_Relationship_Count')
+
+# Show the plot
+plt.show()
+
+#%%[markdown]
+# Scatter Plot: Months on Book vs Total Relationship Count
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Scatter plot between 'Months_on_book' and 'Total_Relationship_Count'
+sns.scatterplot(x='Months_on_book', y='Total_Relationship_Count', data=df)
+plt.title('Scatter Plot: Months on Book vs Total Relationship Count')
+plt.xlabel('Months on Book')
+plt.ylabel('Total Relationship Count')
+plt.show()
+
+#%%
+correlation_coefficient = df['Months_on_book'].corr(df['Total_Relationship_Count'])
+print(f'Correlation Coefficient: {correlation_coefficient}')
+
+
+#%%
+# Customer_age and Total_Trans_Amt Scatter plot
+import matplotlib.pyplot as plt
+
+# Scatter plot between 'Customer_Age' and 'Total_Trans_Amt'
+plt.scatter(df['Customer_Age'], df['Total_Trans_Amt'])
+plt.title('Scatter Plot: Customer Age vs Total Transaction Amount')
+plt.xlabel('Customer Age')
+plt.ylabel('Total Transaction Amount')
+plt.show()
+
+#%%
+# Proportion of Education level Pie chart
+import matplotlib.pyplot as plt
+
+# Count the occurrences of each education level
+education_counts = df['Education_Level'].value_counts()
+
+# Create a pie chart
+plt.pie(education_counts, labels=education_counts.index, autopct='%1.1f%%', startangle=90)
+plt.title('Proportion of Education Level')
+plt.show()
 
 
 #%%
@@ -159,7 +213,75 @@ sns.heatmap(data=correlation_matrix, annot=False, fmt='.2f')
 plt.title("Heatmap of data in Customer_Churn")
 plt.show()
 
+#%%
+# Correlation Analysis
+# import seaborn as sns
+# import pandas as pd
+# import numpy as np
+
+# Create a dataset
+# df = pd.DataFrame(np.random.random((10, 10)), columns=['Attrition_Flag', 'Customer_Age', 'Gender', 'Dependent_count', 'Education_Level', 'Marital_Status', 'Income_Category', 'Card_Category', 'Months_on_book', 'Total_Relationship_Count'])
+
+# plot a heatmap with annotation
+# sns.heatmap(df.corr(), annot=True, annot_kws={"size": 7})
+
+#%%
+# Assuming you want to visualize 'Income_Category', 'Gender', 'Marital_Status', and 'Card_Category'
+features_to_visualize = ['Income_Category', 'Gender', 'Marital_Status', 'Card_Category']
+
+for feature in features_to_visualize:
+    sns.countplot(x=feature, data=df)
+    plt.title(f'{feature} Distribution')
+    plt.show()
+
+
+#%%
+# Feature Importance
+from sklearn.ensemble import RandomForestClassifier
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Select relevant features and target variable
+features = ['Customer_Age', 'Total_Trans_Amt', 'Total_Trans_Ct', 'Months_on_book', 'Education_Level']
+
+# Convert categorical variables to numerical using one-hot encoding
+df_encoded = pd.get_dummies(df[features], columns=['Education_Level'], drop_first=True)
+
+# Ensure 'Education_Level' is part of the DataFrame after one-hot encoding
+if 'Education_Level' in df_encoded.columns:
+    # Remove the original 'Education_Level' column after encoding
+    df_encoded = df_encoded.drop(columns=['Education_Level'])
+
+# Extract target variable
+y = df['Attrition_Flag']
+
+# Initialize and train the Random Forest model
+model = RandomForestClassifier(random_state=42)
+model.fit(df_encoded, y)
+
+# Get feature importances
+feature_importances = model.feature_importances_
+
+# Create a DataFrame for better visualization
+feature_importance_df = pd.DataFrame({'Feature': df_encoded.columns, 'Importance': feature_importances})
+
+# Sort the DataFrame by importance in descending order
+feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
+
+# Plot the feature importances
+plt.figure(figsize=(10, 6))
+plt.barh(feature_importance_df['Feature'], feature_importance_df['Importance'])
+plt.xlabel('Importance')
+plt.title('Feature Importance')
+plt.show()
+
+
+
+
+
 # %%[markdown]
+## Data Modeling
+#
 # Q5 If a customer has a low-income level but a high credit limit, is there a higher probability of them churning?
 # Logistic regression
 # Data info
@@ -521,4 +643,105 @@ plt.title('Receiver Operating Characteristic (ROC) Curve')
 plt.legend(loc="lower right")
 plt.show()
 
+
+# %%[markdown]
+# Parameter Tuning for Random Forest 3 - STME
+import pandas as pd
+import random
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.preprocessing import LabelEncoder
+from imblearn.over_sampling import SMOTE # Sampling SMTE
+
+df = pd.read_csv("/Users/brian/Documents/GitHub/BankChurners/DATS6103_10_Group_5/Final_BankChurners.csv")
+
+
+# Convert categorical variables to numerical for modeling
+le = LabelEncoder()
+df['Income_Category'] = le.fit_transform(df['Income_Category'])
+df['Gender'] = le.fit_transform(df['Gender'])
+df['Marital_Status'] = le.fit_transform(df['Marital_Status'])
+df['Card_Category'] = le.fit_transform(df['Card_Category'])
+df['Attrition_Flag'] = df['Attrition_Flag'].map({'Existing Customer': 0, 'Attrited Customer': 1})
+
+# Select relevant features and target variable
+features = ['Income_Category', 'Credit_Limit', 'Total_Trans_Amt', 'Avg_Utilization_Ratio']
+target = 'Attrition_Flag'
+
+X = df[features]
+y = df[target]
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Define a random seed
+random_seed = 42  # You can choose any integer value
+
+# Now you can use the random_seed variable in your code
+random.seed(random_seed)
+
+# The SMOTE
+smote = SMOTE(random_state=random_seed)
+
+# Augment the training data
+X_smote_train, y_smote_train = smote.fit_resample(X_train, y_train)
+
+# Create a Random Forest classifier
+rf_model = RandomForestClassifier(random_state=42)
+
+# Define the hyperparameter grid to search
+param_grid = {
+    'n_estimators': [50, 100, 150],  # Number of trees in the forest
+    'max_depth': [None, 10, 20, 30],  # Maximum depth of the tree
+    'min_samples_split': [2, 5, 10],  # Minimum number of samples required to split an internal node
+    'min_samples_leaf': [1, 2, 4]  # Minimum number of samples required to be at a leaf node
+}
+
+# Perform GridSearchCV to find the best parameters
+grid_search = GridSearchCV(estimator=rf_model, param_grid=param_grid, cv=5, scoring='accuracy')
+grid_search.fit(X_smote_train, y_smote_train)
+
+# Get the best parameters and the best model
+best_params = grid_search.best_params_
+best_model = grid_search.best_estimator_
+
+# Predictions with the best model
+y_pred = best_model.predict(X_test)
+
+# Evaluate the best model
+print("Best Parameters:", best_params)
+print("\nBest Model Performance:")
+print(confusion_matrix(y_test, y_pred))
+print(classification_report(y_test, y_pred))
+print("Accuracy:", accuracy_score(y_test, y_pred))
+
 # %%
+# AUC-ROC for Random Forest
+import matplotlib.pyplot as plt
+from sklearn.metrics import roc_curve, auc
+from sklearn.preprocessing import label_binarize
+from sklearn.multiclass import OneVsRestClassifier
+
+# Binarize the labels for ROC curve calculation
+y_test_bin = label_binarize(y_test, classes=[0, 1])
+
+# Use OneVsRestClassifier for multi-class ROC curve
+classifier = OneVsRestClassifier(best_model)
+y_score = classifier.fit(X_train, y_train).predict_proba(X_test)[:, 1]  # Probability of the positive class
+
+# Compute ROC curve and ROC area
+fpr, tpr, _ = roc_curve(y_test_bin, y_score)
+roc_auc = auc(fpr, tpr)
+
+# Plot ROC curve
+plt.figure(figsize=(8, 6))
+plt.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve (area = {:.2f})'.format(roc_auc))
+plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver Operating Characteristic (ROC) Curve')
+plt.legend(loc="lower right")
+plt.show()
