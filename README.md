@@ -34,7 +34,7 @@ justify its use. Model evaluation will be done using metrics like accuracy, prec
 and the AUC-ROC curve. Feature importance and model interpretability will also be integral parts of
 our analysis.
 
-**Final Notebook FileName**
+**Final Notebook Name**
 
 Notebook Name : DM ProjectK.ipynb 
 
